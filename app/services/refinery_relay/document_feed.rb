@@ -103,13 +103,25 @@ module RefineryRelay
         "documents" => documents,
         "cursor" => checkpoint
       }
-      payload["next_cursor"] = checkpoint unless next_state["mode"] == "complete"
+      payload["next_cursor"] = checkpoint if continuation_cursor?(next_state, checkpoint)
       payload
     end
 
     private
 
     attr_reader :cursor, :public_base_url, :page_size, :source_types
+
+    # A continuation token must always move the scan forward. Returning the
+    # request token again would make consumers poll the same page indefinitely.
+    # There is no valid non-terminal state transition that leaves the encoded
+    # cursor unchanged, so fail the request rather than emitting a looping
+    # next_cursor if that invariant is ever broken.
+    def continuation_cursor?(next_state, checkpoint)
+      return false if next_state["mode"] == "complete"
+      return true if cursor.blank? || checkpoint != encode_cursor(cursor)
+
+      raise InvalidCursor, "pagination cursor did not advance"
+    end
 
     def cursor_state
       return tombstone_state if cursor.blank? || cursor["mode"] == "complete"

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 120" role="img" aria-label="Relay Chat">
+  <rect width="135" height="120" rx="12" fill="#ecfdf5"/>
+  <path d="M31 36h73a10 10 0 0 1 10 10v38a10 10 0 0 1-10 10H63l-17 13v-13H31a10 10 0 0 1-10-10V46a10 10 0 0 1 10-10Z" fill="#059669"/>
+  <circle cx="53" cy="65" r="5" fill="#fff"/>
+  <circle cx="68" cy="65" r="5" fill="#fff"/>
+  <circle cx="83" cy="65" r="5" fill="#fff"/>
+</svg>

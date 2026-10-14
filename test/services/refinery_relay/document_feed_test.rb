@@ -88,7 +88,8 @@ class RefineryRelayDocumentFeedTest < ActiveSupport::TestCase
     now = Time.utc(2026, 8, 25, 12, 0, 0)
     pages = [
       FakePage.new(1, "One", "one", "/one", [], [], now),
-      FakePage.new(2, "Two", "two", "/two", [], [], now)
+      FakePage.new(2, "Two", "two", "/two", [], [], now),
+      FakePage.new(3, "Three", "three", "/three", [], [], now)
     ]
 
     first = TestFeed.new(pages: pages, cursor: nil, public_base_url: "https://sit.example", page_size: 1).call
@@ -97,9 +98,13 @@ class RefineryRelayDocumentFeedTest < ActiveSupport::TestCase
 
     second = TestFeed.new(pages: pages, cursor: first.fetch("next_cursor"), public_base_url: "https://sit.example", page_size: 1).call
     assert_equal [ "pages:2" ], second.fetch("documents").map { |document| document.fetch("external_id") }
-    assert_nil second["next_cursor"]
+    refute_equal first.fetch("next_cursor"), second.fetch("next_cursor")
 
-    restarted = TestFeed.new(pages: pages, cursor: second.fetch("cursor"), public_base_url: "https://sit.example", page_size: 1).call
+    third = TestFeed.new(pages: pages, cursor: second.fetch("next_cursor"), public_base_url: "https://sit.example", page_size: 1).call
+    assert_equal [ "pages:3" ], third.fetch("documents").map { |document| document.fetch("external_id") }
+    assert_nil third["next_cursor"]
+
+    restarted = TestFeed.new(pages: pages, cursor: third.fetch("cursor"), public_base_url: "https://sit.example", page_size: 1).call
     assert_equal [ "pages:1" ], restarted.fetch("documents").map { |document| document.fetch("external_id") }
   end
 
