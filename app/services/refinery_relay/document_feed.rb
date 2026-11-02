@@ -136,10 +136,13 @@ module RefineryRelay
         return tombstone_state
       end
 
-      return tombstone_state if mode == "tombstones"
-
       last_id = Integer(cursor.fetch("last_id"))
       raise InvalidCursor if last_id.negative?
+
+      # Tombstones are paginated independently before live source records.
+      # Preserve their checkpoint; resetting to zero here replays the same
+      # deleted records and reissues the same next_cursor forever.
+      return tombstone_state(last_id) if mode == "tombstones"
 
       source_index = Integer(cursor.fetch("source_index"))
       raise InvalidCursor if source_index.negative?

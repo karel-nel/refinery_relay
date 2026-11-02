@@ -108,6 +108,32 @@ class RefineryRelayDocumentFeedTest < ActiveSupport::TestCase
     assert_equal [ "pages:1" ], restarted.fetch("documents").map { |document| document.fetch("external_id") }
   end
 
+  test "continues tombstones from their supplied checkpoint" do
+    feed = TestFeed.new(
+      pages: [],
+      cursor: nil,
+      public_base_url: "https://sit.example",
+      source_types: [ "pages" ]
+    )
+    cursor = feed.send(:encode_cursor, {
+      "mode" => "tombstones",
+      "last_id" => 25,
+      "source_types" => [ "pages" ]
+    })
+
+    continued_feed = TestFeed.new(
+      pages: [],
+      cursor: cursor,
+      public_base_url: "https://sit.example",
+      source_types: [ "pages" ]
+    )
+
+    assert_equal(
+      { "mode" => "tombstones", "last_id" => 25, "source_types" => [ "pages" ] },
+      continued_feed.send(:cursor_state)
+    )
+  end
+
   test "starts a direct snapshot when upgrading from an RSS hash cursor" do
     now = Time.utc(2026, 8, 25, 12, 0, 0)
     page = FakePage.new(1, "One", "one", "/one", [], [], now)
